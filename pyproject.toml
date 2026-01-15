@@ -1,0 +1,25 @@
+
+[project]
+name = "commandcript"
+description = "Utilities for task management by creation and execution OS-specific scripts."
+authors = [{ name = "Alexey Perestoronin", email = "Alexey.Perestoronin@yandex.ru" }]
+readme = "README.md"
+version = "1.0.2"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+dependencies = [
+    "invoke==2.2.0",
+    "colorama==0.4.6",
+    "prettytable==3.17.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/AlexeyPerestoronin/CommandScript"
+Issues = "https://github.com/AlexeyPerestoronin/CommandScript/issues"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

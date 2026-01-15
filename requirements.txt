@@ -1,2 +1,7 @@
-invoke>=2.2.0           # TODO: need provide some description
-prettytable>=3          # TODO: need provide some description
+# for production
+invoke>=2.2.0
+colorama>=0.4
+prettytable>=3
+
+# for developing
+yapf>=0.4

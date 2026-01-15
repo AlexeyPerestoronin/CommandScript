@@ -1,0 +1,13 @@
+LICENSE
+README.md
+pyproject.toml
+src/commandcript/__init__.py
+src/commandcript/logger.py
+src/commandcript/script_executor.py
+src/commandcript.egg-info/PKG-INFO
+src/commandcript.egg-info/SOURCES.txt
+src/commandcript.egg-info/dependency_links.txt
+src/commandcript.egg-info/requires.txt
+src/commandcript.egg-info/top_level.txt
+src/commandcript/ubuntu/__init__.py
+src/commandcript/windows/__init__.py

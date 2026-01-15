@@ -157,11 +157,12 @@ def script_task(**task_kwargs):
 
         # update function signature with new parameters
         script_dir_default_value = ENV_CONTEXT.get('COMMANDSCRIPT_SCRIPT_DIR', os.environ.get('ENV_CONTEXT'))
-        wrapper.__signature__ = sig.replace(parameters=[
-            *sig.parameters.values(),
-            inspect.Parameter('script_dir', inspect.Parameter.KEYWORD_ONLY, default=script_dir_default_value, annotation=str),
-            inspect.Parameter('launch', inspect.Parameter.KEYWORD_ONLY, default=True, annotation=bool),
-        ])
+        wrapper.__signature__ = sig.replace(
+            parameters=[
+                *sig.parameters.values(),
+                inspect.Parameter('script_dir', inspect.Parameter.KEYWORD_ONLY, default=script_dir_default_value, annotation=str),
+                inspect.Parameter('launch', inspect.Parameter.KEYWORD_ONLY, default=True, annotation=bool),
+            ])
 
         # create new help with two common parameters: script-dir and launch
         new_help = {
