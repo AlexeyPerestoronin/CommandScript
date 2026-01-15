@@ -1,0 +1,2 @@
+invoke>=2.2.0           # TODO: need provide some description
+prettytable>=3          # TODO: need provide some description
