@@ -2,6 +2,7 @@ LICENSE
 README.md
 pyproject.toml
 src/commandcript/__init__.py
+src/commandcript/env_context.py
 src/commandcript/logger.py
 src/commandcript/script_executor.py
 src/commandcript.egg-info/PKG-INFO

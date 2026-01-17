@@ -2,36 +2,13 @@ import os
 import invoke
 import pathlib
 import src.commandcript as commandcript
+from src.commandcript import ENV_CONTEXT
 
 
-def setup_env_context():
-    """
-    Gets table of env-variables needing for tasks launching
-    """
-
-    context = {}
-
-    def setup_dir_via_env(env_variable_name: str, default_value: str = None):
-        value = os.environ.get(env_variable_name)
-        if not value:
-            if default_value:
-                value = pathlib.Path(os.path.abspath(default_value)).as_posix()
-            else:
-                raise Exception(f"env-variable {env_variable_name} is not set!")
-        else:
-            value = pathlib.Path(os.path.abspath(os.environ[env_variable_name])).as_posix()
-
-        context[env_variable_name] = value
-        return value
-
-    project_git_dir = setup_dir_via_env("PROJECT_GIT_DIR", f"{__file__}/../")
-    setup_dir_via_env("COMMANDSCRIPT_SCRIPT_DIR", f"{project_git_dir}/.generated")
-    setup_dir_via_env("PROJECT_DIST_DIR", f"{project_git_dir}/dist")
-
-    return context
-
-
-commandcript.ENV_CONTEXT = setup_env_context()
+ENV_CONTEXT\
+    .add_env_var('PROJECT_GIT_DIR', f'{__file__}/../')\
+    .add_env_var('COMMANDSCRIPT_SCRIPT_DIR', f'{ENV_CONTEXT.PROJECT_GIT_DIR}/.generated')\
+    .add_env_var('PROJECT_DIST_DIR', f'{ENV_CONTEXT.PROJECT_GIT_DIR}/dist')
 
 
 @commandcript.script_task()
@@ -44,7 +21,7 @@ def get_info(ctx):
     table = PrettyTable()
     table.align = "l"
     table.field_names = ["ENV-name", "ENV-value"]
-    for key, value in commandcript.ENV_CONTEXT.items():
+    for key, value in ENV_CONTEXT.items():
         table.add_row([key, value])
 
     commandcript.INFO\
@@ -59,7 +36,7 @@ def get_info(ctx):
         'dirs': 'list of directories where python files should be discovering (by default: ["./"])',
     },
     iterable=['dirs'])
-def yapf(ctx, cwd: str = f'{commandcript.ENV_CONTEXT["PROJECT_GIT_DIR"]}', style_yapf: str = f'{commandcript.ENV_CONTEXT["PROJECT_GIT_DIR"]}/.style.yapf', dirs: list = None):
+def yapf(ctx, cwd: str = f'{ENV_CONTEXT.PROJECT_GIT_DIR}', style_yapf: str = f'{ENV_CONTEXT.PROJECT_GIT_DIR}/.style.yapf', dirs: list = None):
     """
     Format python files with script-tasks
     """
@@ -104,7 +81,7 @@ def prepare_build(ctx, install_build_tool: bool = False, clean_dist=False):
     Prepare build before uploading on PyPl
     """
     if clean_dist:
-        dist_dir = commandcript.ENV_CONTEXT['PROJECT_DIST_DIR']
+        dist_dir = ENV_CONTEXT['PROJECT_DIST_DIR']
         for filename in os.listdir(dist_dir):
             file_path = os.path.join(dist_dir, filename)
             if os.path.isfile(file_path):
@@ -112,7 +89,7 @@ def prepare_build(ctx, install_build_tool: bool = False, clean_dist=False):
                 commandcript.INFO.log_line(f'Deleted dist: {file_path}')
 
     commandcript.ScriptExecutor(ctx.script_dir, ctx.launch)\
-        .add_cwd(commandcript.ENV_CONTEXT['PROJECT_GIT_DIR'])\
+        .add_cwd(ENV_CONTEXT['PROJECT_GIT_DIR'])\
         .add_command([f'pip install --upgrade build'] if install_build_tool else None)\
         .add_command([f'python -m build'])\
         .execute(log='prepare_build.log')
@@ -127,7 +104,7 @@ def publish_build(ctx, install_uploading_tool: bool = False, upload_on_test: boo
     """
     Uploading build on PyPl
     """
-    script = commandcript.ScriptExecutor(ctx.script_dir, ctx.launch).add_cwd(commandcript.ENV_CONTEXT['PROJECT_GIT_DIR'])
+    script = commandcript.ScriptExecutor(ctx.script_dir, ctx.launch).add_cwd(ENV_CONTEXT['PROJECT_GIT_DIR'])
     if install_uploading_tool:
         script.add_command([f'pip install --upgrade twine'])
     if upload_on_test:

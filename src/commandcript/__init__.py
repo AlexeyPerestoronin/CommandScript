@@ -35,7 +35,8 @@ See Also:
 import inspect
 import functools
 
-from .script_executor import ENV_CONTEXT, ScriptExecutor
+from .env_context import ENV_CONTEXT
+from .script_executor import ScriptExecutor
 from .logger import SUCCESS, STATUS, INFO, WARNING, ERROR
 
 

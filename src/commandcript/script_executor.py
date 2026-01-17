@@ -6,36 +6,7 @@ import copy
 import typing
 
 from .logger import SUCCESS, STATUS, ERROR, INFO
-
-# Global environment context dictionary for script execution.
-#
-# This dictionary stores environment variables and paths that are used by
-# ScriptExecutor instances across the application. It is typically populated
-# at application startup by setup_env_context() in APTTasks/tasks.py.
-#
-# The context contains essential paths for:
-#   - Build directories (BUILD_DIR, BIN_DIR)
-#   - Git repositories (PROJECT_GIT_DIR, PROJECT_TESTS_GIT_DIR)
-#   - Resource directories (RESOURCES_DIR)
-#   - External dependencies (EXTERNALS_ROOT_DIR)
-#   - Script directory configuration (COMMANDSCRIPT_SCRIPT_DIR)
-#
-# Each ScriptExecutor instance deep-copies this context at initialization,
-# allowing modifications per-executor without affecting the global state.
-#
-# Example structure:
-#   {
-#       'BUILD_DIR': '/path/to/build',
-#       'BIN_DIR': '/path/to/build/bin',
-#       'LOG_DIR': '/path/to/build/project/log',
-#       'LOAD_PATHS': '/path/to/bin:/path/to/tests',
-#       ...
-#   }
-#
-# Note:
-#   This variable is exported and can be accessed via:
-#       from commandscipt import ENV_CONTEXT
-ENV_CONTEXT: typing.Dict[str, typing.Any] = {}
+from .env_context import ENV_CONTEXT
 
 
 class ScriptExecutor:

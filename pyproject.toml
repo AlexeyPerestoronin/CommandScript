@@ -4,7 +4,7 @@ name = "commandcript"
 description = "Utilities for task management by creation and execution OS-specific scripts."
 authors = [{ name = "Alexey Perestoronin", email = "Alexey.Perestoronin@yandex.ru" }]
 readme = "README.md"
-version = "1.0.2"
+version = "1.1.0"
 license = { file = "LICENSE" }
 requires-python = ">=3.9"
 dependencies = [

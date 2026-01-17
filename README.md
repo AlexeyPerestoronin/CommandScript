@@ -45,14 +45,6 @@ Install CommandScript using pip:
 pip install commandcript
 ```
 
-Or from source:
-
-```bash
-git clone https://github.com/AlexeyPerestoronin/CommandScript commandcript
-cd commandcript
-pip install -e .
-```
-
 ### Dependencies
 
 CommandScript requires the following dependencies (automatically installed):
@@ -63,7 +55,7 @@ CommandScript requires the following dependencies (automatically installed):
 
 ## Quick Start
 
-🌟 Good practice example you can see in [tasks.py](https://github.com/AlexeyPerestoronin/CommandScript/blob/master/tasks.py)
+✅ Good practice example you can see in [tasks.py](https://github.com/AlexeyPerestoronin/CommandScript/blob/master/tasks.py)
 
 ### Basic Usage
 
@@ -94,16 +86,14 @@ executor.add_cwd('/path/to/working/directory') \
 import invoke
 import commandcript
 
-commandcript.ENV_CONTEXT = {
-    'COMMANDSCRIPT_SCRIPT_DIR': '/path/to/folder/with/generated/scripts/.generated'
-}
+commandcript.ENV_CONTEXT.add_env_var('COMMANDSCRIPT_SCRIPT_DIR', '/path/to/folder/with/generated/scripts/.generated')
 
 # Define a task
 @scommandcript.cript_task()
 def build(ctx):
     """Build the project"""
     commandcript.ScriptExecutor(ctx.script_dir, ctx.launch) \
-        .add_cwd(ENV_CONTEXT['PROJECT_GIT_DIR']) \
+        .add_cwd(ENV_CONTEXT.PROJECT_GIT_DIR) \
         .add_command(['python', 'setup.py', 'build']) \
         .execute(log='build')
 
@@ -113,37 +103,19 @@ namespace.add_task(build)
 ```
 
 ### Environment Setup
-`commandcript.ENV_CONTEXT` is global dictionary for storing environment variables and paths used across `@commandcript.script_task()` instances.
+`commandcript.ENV_CONTEXT` is a global instance of the `EnvContext` class, which is a specialized dictionary for storing environment variables and paths used across `@commandcript.script_task()` instances.
+
+The `EnvContext` class provides additional functionality for managing environment variables, including the `add_env_var` method for retrieving OS environment variables with defaults and automatic path conversion.
 
 Before using CommandScript, set up the environment context:
 
 ```python
-import os
-import pathlib
-import commandcript
+from src.commandcript import ENV_CONTEXT
 
-def setup_env_context():
-    """
-    Custom logic to commandcript.ENV_CONTEXT defining...
-    """
-    context = {}
-
-    # Set project directory
-    project_git_dir = os.environ.get('PROJECT_GIT_DIR')
-    if not project_git_dir:
-        project_git_dir = pathlib.Path(__file__).parent.as_posix()
-    context['PROJECT_GIT_DIR'] = project_git_dir
-
-    # Set script directory
-    script_dir = os.environ.get('COMMANDSCRIPT_SCRIPT_DIR')
-    if not script_dir:
-        script_dir = f"{project_git_dir}/.generated"
-    context['COMMANDSCRIPT_SCRIPT_DIR'] = script_dir
-
-    return context
-
-# Initialize
-commandcript.ENV_CONTEXT = setup_env_context()
+ENV_CONTEXT\
+    .add_env_var('PROJECT_GIT_DIR', f'{__file__}/../')\
+    .add_env_var('COMMANDSCRIPT_SCRIPT_DIR', f'{ENV_CONTEXT.PROJECT_GIT_DIR}/.generated')\
+    .add_env_var('PROJECT_DIST_DIR', f'{ENV_CONTEXT.PROJECT_GIT_DIR}/dist')
 ```
 
 ### Multi-command execution
