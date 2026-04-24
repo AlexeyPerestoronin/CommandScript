@@ -79,16 +79,13 @@ def prepare_build(ctx, install_build_tool: bool = False, clean_dist=False):
 
 @commandcript.script_task(
     help={
-        'install-uploading-tool': 'need to install python build tool before (by default: False)',
         'upload-on-test': 'if True, upload prepared package on https://test.pypi.org/; if False - on https://pypi.org/ (by default: True)',
     })
-def publish_build(ctx, install_uploading_tool: bool = False, upload_on_test: bool = True):
+def publish_build(ctx, upload_on_test: bool = True):
     """
     Uploading build on PyPl
     """
     script = commandcript.ScriptExecutor(ctx.script_dir, ctx.launch).add_cwd(commandcript.ENV_CONTEXT.PROJECT_GIT_DIR.hld)
-    if install_uploading_tool:
-        script.add_command([f'pip install --upgrade twine'])
     if upload_on_test:
         script.add_command([f'python -m twine upload --verbose --repository testpypi dist/*'])
         script.execute(log='publish_on_testpypi.log')

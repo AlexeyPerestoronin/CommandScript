@@ -3,3 +3,4 @@ invoke>=2.2.0
 colorama>=0.4
 yapf>=0.4
 build>=1.4.4
+twine>=6.2.0
