@@ -1,6 +1,6 @@
 
 [project]
-name = "commandcript"
+name = "commandsript"
 description = "Utilities for task management by creation and execution OS-specific scripts."
 authors = [{ name = "Alexey Perestoronin", email = "Alexey.Perestoronin@yandex.ru" }]
 readme = "README.md"

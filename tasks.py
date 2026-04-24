@@ -1,7 +1,7 @@
 import os
 import invoke
 import pathlib
-import commandsript
+import src.commandsript as commandsript
 
 
 commandsript.ENV_CONTEXT\

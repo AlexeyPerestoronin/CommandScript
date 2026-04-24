@@ -1,7 +1,15 @@
+# python env
 .venv/
+
+# python commandscript
 .generated/
 
+# python build
 dist/
+src/commandsript.egg-info
+
+# python twine
 *.token
 
+# temporary files
 note.md

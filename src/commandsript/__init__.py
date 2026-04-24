@@ -39,6 +39,21 @@ from .env_context import ENV_CONTEXT
 from .script_executor import ScriptExecutor
 from .logger import SUCCESS, STATUS, INFO, WARNING, ERROR
 
+__all__ = [
+    # logging
+    "SUCCESS",
+    "STATUS",
+    "INFO",
+    "WARNING",
+    "ERROR",
+    # scrip creation
+    "ENV_CONTEXT",
+    "ScriptExecutor",
+    "script_task",
+    # support functions
+    "join_env_paths",
+]
+
 
 def join_env_paths(paths: list) -> str:
     """
@@ -175,19 +190,3 @@ def script_task(**task_kwargs):
         return invoke.task(**{**task_kwargs, 'help': new_help})(print_task_documentation(wrapper))
 
     return decorator
-
-
-__all__ = [
-    # logging
-    "SUCCESS",
-    "STATUS",
-    "INFO",
-    "WARNING",
-    "ERROR",
-    # scrip creation
-    "ENV_CONTEXT",
-    "ScriptExecutor",
-    "script_task",
-    # support functions
-    "join_env_paths",
-]
