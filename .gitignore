@@ -6,7 +6,7 @@
 
 # python build
 dist/
-src/commandsript.egg-info
+src/commandscript.egg-info
 
 # python twine
 *.token
