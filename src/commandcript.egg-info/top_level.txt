@@ -1,1 +1,1 @@
-commandcript
+commandsript

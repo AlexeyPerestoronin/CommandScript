@@ -1,10 +1,11 @@
 {
     "cSpell.words": [
         "colorama",
-        "commandcript",
         "COMMANDSCRIPT",
+        "commandsript",
         "Perestoronin",
         "prettytable",
+        "pyproject",
         "setuptools",
         "testpypi"
     ]
