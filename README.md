@@ -7,7 +7,7 @@ CommandScript is a Python library that provides utilities for task management th
 
 Based on the [invoke](https://www.pyinvoke.org/) library, it allows you to create collections of tasks running along the following pipeline:
 
-![](./pipeline.drawio.png)
+![](./WiKi/pipeline.drawio.png)
 
 ## Features
 
@@ -16,7 +16,6 @@ Based on the [invoke](https://www.pyinvoke.org/) library, it allows you to creat
     - ✅ Linux (POSIX)
         - Generates `.sh` Bash scripts
         - Uses `bash` for execution
-        - Supports shell quoting and escaping
         - Measures execution time with nanosecond precision
     - ✅ Windows (NT)
         - Generates `.bat` Batch scripts
@@ -34,7 +33,7 @@ Based on the [invoke](https://www.pyinvoke.org/) library, it allows you to creat
          - its execution log is saved and could be open in IDE for analytics
 - **Environment context**: Global environment variable management for script execution
 - **Integrated logging**: Colored console output and file logging with timestamps
-- **Error handling**: Automatic return code checking and exception raising on failures
+- **Error handling**: Automatic return code checking and error logging on failures
 - **Timing**: Execution duration measurement for performance monitoring
 
 ## Installation
@@ -51,11 +50,10 @@ CommandScript requires the following dependencies (automatically installed):
 
 - `invoke>=2.2.0` - Task execution framework
 - `colorama>=0.4.6` - Cross-platform colored terminal text
-- `prettytable>=3.17.0` - Display tabular data
 
 ## Quick Start
 
-✅ Good practice example you can see in [tasks.py](https://github.com/AlexeyPerestoronin/CommandScript/blob/master/tasks.py)
+✅ Good practice example you can see the [tasks.py](https://github.com/AlexeyPerestoronin/CommandScript/blob/master/tasks.py) in this repository.
 
 ### Basic Usage
 
@@ -64,14 +62,13 @@ import os
 import commandcript
 
 # Set up environment context
-commandcript.ENV_CONTEXT.update({
-    'PROJECT_GIT_DIR': '/path/to/project',
-    'COMMANDSCRIPT_SCRIPT_DIR': '/path/to/scripts'
-})
+commandcript.ENV_CONTEXT \
+    .add_env_var('PROJECT_GIT_DIR', '/path/to/project') \
+    .add_env_var('COMMANDSCRIPT_SCRIPT_DIR', '${PROJECT_GIT_DIR}/scripts')
 
 # Create and execute a simple command
 executor = commandcript.ScriptExecutor(
-    log_dir='/path/to/logs',
+    log_dir=commandcript.ENV_CONTEXT.COMMANDSCRIPT_SCRIPT_DIR,
     execute_created_script=True
 )
 
@@ -89,11 +86,11 @@ import commandcript
 commandcript.ENV_CONTEXT.add_env_var('COMMANDSCRIPT_SCRIPT_DIR', '/path/to/folder/with/generated/scripts/.generated')
 
 # Define a task
-@scommandcript.cript_task()
+@commandcript.script_task()
 def build(ctx):
     """Build the project"""
     commandcript.ScriptExecutor(ctx.script_dir, ctx.launch) \
-        .add_cwd(ENV_CONTEXT.PROJECT_GIT_DIR) \
+        .add_cwd(commandcript.ENV_CONTEXT.PROJECT_GIT_DIR.hld) \
         .add_command(['python', 'setup.py', 'build']) \
         .execute(log='build')
 
@@ -103,9 +100,13 @@ namespace.add_task(build)
 ```
 
 ### Environment Setup
-`commandcript.ENV_CONTEXT` is a global instance of the `EnvContext` class, which is a specialized dictionary for storing environment variables and paths used across `@commandcript.script_task()` instances.
+`commandcript.ENV_CONTEXT` is a global instance of the `EnvContext` class, which is a specialized dictionary for storing environment variables as `EnvVariable` objects used across `@commandcript.script_task()` instances.
 
-The `EnvContext` class provides additional functionality for managing environment variables, including the `add_env_var` method for retrieving OS environment variables with defaults and automatic path conversion.
+The `EnvContext` class provides additional functionality for managing environment variables, including the `add_env_var` method for retrieving OS environment variables with defaults and automatic variable substitution.
+
+**Variable substitution**: You can use `${VAR}` syntax in default values. The value will be stored in two forms:
+- `.hld` — hold value with OS-specific substitution placeholders (e.g., `$VAR` on POSIX, `%VAR%` on Windows)
+- `.exp` — fully expanded value with all substitutions resolved
 
 Before using CommandScript, set up the environment context:
 
@@ -114,8 +115,12 @@ from src.commandcript import ENV_CONTEXT
 
 ENV_CONTEXT\
     .add_env_var('PROJECT_GIT_DIR', f'{__file__}/../')\
-    .add_env_var('COMMANDSCRIPT_SCRIPT_DIR', f'{ENV_CONTEXT.PROJECT_GIT_DIR}/.generated')\
-    .add_env_var('PROJECT_DIST_DIR', f'{ENV_CONTEXT.PROJECT_GIT_DIR}/dist')
+    .add_env_var('COMMANDSCRIPT_SCRIPT_DIR', '${PROJECT_GIT_DIR}/.generated')\
+    .add_env_var('PROJECT_DIST_DIR', '${PROJECT_GIT_DIR}/dist')
+
+# Access values
+print(ENV_CONTEXT.PROJECT_DIST_DIR.hld)  # ${PROJECT_GIT_DIR}/dist  (or %PROJECT_GIT_DIR%/dist on Windows)
+print(ENV_CONTEXT.PROJECT_DIST_DIR.exp)  # /path/to/project/dist
 ```
 
 ### Multi-command execution
@@ -123,7 +128,9 @@ ENV_CONTEXT\
 ```python
 import commandcript
 
-executor = commandcript.ScriptExecutor('/path/to/logs', True)
+commandcript.ENV_CONTEXT.add_env_var('LOG_DIR', '/path/to/logs')
+
+executor = commandcript.ScriptExecutor(commandcript.ENV_CONTEXT.LOG_DIR, True)
 
 executor.add_cwd('/tmp') \
         .add_env({'MY_VAR': 'value'}) \
@@ -160,16 +167,33 @@ The main class for executing commands via OS-specific scripts.
 
 - **Constructor**:
     ```python
-    ScriptExecutor(log_dir: str, execute_created_script: bool)
+    ScriptExecutor(log_dir: EnvVariable, execute_created_script: bool)
     ```
-    - `log_dir`: Directory where log files and scripts will be stored
+    - `log_dir`: `EnvVariable` object pointing to the directory where log files and scripts will be stored (uses `.exp` internally)
     - `execute_created_script`: If True, executes the generated script; if False, only generates it
 - **Methods**
     - `add_cwd(cwd: str)`: Set working directory for script execution
     - `add_env(env: dict)`: Add environment variables
     - `add_command(command: list, enter=True, offset=True)`: Add a single command
-    - `add_commands(commands: list, enter=True, offset=True)`: Add multiple commands
-    - `execute(log: str = None)`: Execute the script and log output
+    - `add_commands(commands: List[list], enter=True, offset=True)`: Add multiple commands
+    - `execute(log: str = None)`: Execute the script and log output. On failure, logs the error without raising an exception.
+
+### EnvVariable
+
+Represents a single environment variable with support for cross-platform substitution syntax.
+
+- **Properties**
+    - `name`: The variable name
+    - `hld`: Hold value with OS-specific substitution placeholders (`$VAR` on POSIX, `%VAR%` on Windows)
+    - `exp`: Fully expanded value with all `${VAR}` substitutions resolved
+    - `__str__()`: Returns the hold value (`.hld`)
+
+### EnvContext
+
+Specialized dictionary (`Dict[str, EnvVariable]`) for managing environment variables.
+
+- **Methods**
+    - `add_env_var(env_var_name: str, default_value: str = None) -> EnvContext`: Add an environment variable from OS environment with fallback to default value. Supports `${VAR}` substitution in default values.
 
 ### @script_task()
 

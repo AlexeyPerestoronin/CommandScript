@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: commandcript
-Version: 1.1.0
+Version: 1.2.0
 Summary: Utilities for task management by creation and execution OS-specific scripts.
 Author-email: Alexey Perestoronin <Alexey.Perestoronin@yandex.ru>
 License: MIT License
@@ -32,7 +32,6 @@ Description-Content-Type: text/markdown
 License-File: LICENSE
 Requires-Dist: invoke==2.2.0
 Requires-Dist: colorama==0.4.6
-Requires-Dist: prettytable==3.17.0
 Dynamic: license-file
 
 # CommandScript

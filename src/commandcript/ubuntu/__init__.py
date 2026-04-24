@@ -8,20 +8,14 @@ class BashExecutor:
         pass
 
     def _create_bash_script(self, command, cwd: str, env: dict):
-
-        def shlex_quote(s):
-            """Safely quotes a string for passing to a shell command."""
-            import shlex
-            return shlex.quote(s)
-
         script_lines = ["#!/bin/bash\n"]
 
         if env:
             for k, v in env.items():
-                script_lines.append(f"export {k}={shlex_quote(str(v))}\n")
+                script_lines.append(f'export {k}={str(v)}\n')
 
         if cwd:
-            script_lines.append(f"\ncd {shlex_quote(cwd)}\n")
+            script_lines.append(f'\ncd {cwd}\n')
 
         script_lines.append('\nstart_time=$(date +%s.%N)\n')
         # Write each command on a new line, check return code after each
@@ -48,7 +42,6 @@ class BashExecutor:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
-            cwd=cwd,
             env=os.environ,
         )
         return [process_handler, script_path]

@@ -3,10 +3,11 @@ import pathlib
 import threading
 import time
 import copy
-import typing
+
+from typing import List
 
 from .logger import SUCCESS, STATUS, ERROR, INFO
-from .env_context import ENV_CONTEXT
+from .env_context import ENV_CONTEXT, EnvVariable
 
 
 class ScriptExecutor:
@@ -20,8 +21,8 @@ class ScriptExecutor:
     Additionally, this class checks the return code of executed operation and measures the time duration of its execution.
     """
 
-    def __init__(self, log_dir: str, execute_created_script: bool):
-        self.__log_dir = log_dir
+    def __init__(self, log_dir: EnvVariable, execute_created_script: bool):
+        self.__log_dir = log_dir.exp
         self.__execute_created_script = execute_created_script
         if os.name == "nt":
             from . import windows
@@ -62,7 +63,7 @@ class ScriptExecutor:
             self.__commands.append(format_command)
         return self
 
-    def add_commands(self, commands: list, *, enter=True, offset=True):
+    def add_commands(self, commands: List[list], *, enter=True, offset=True):
         for command in commands:
             self.add_command(command, enter=enter, offset=offset)
         return self
@@ -120,4 +121,3 @@ class ScriptExecutor:
             SUCCESS.log_line("Command completed successfully.")
         else:
             ERROR.log_line(f"Command failed: return code {return_code}.")
-            raise Exception("command execution error!")

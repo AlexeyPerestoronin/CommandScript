@@ -49,7 +49,6 @@ class BatchExecutor:
             universal_newlines=True,
             encoding="utf-8",
             errors='replace',
-            cwd=cwd,
             env=os.environ,
         )
         return [process_handler, script_path]
