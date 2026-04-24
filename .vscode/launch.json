@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug invoke task",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "invoke",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "prepare-build",
+                "--clean-dist"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "python": "${workspaceFolder}/.venv/bin/python" 
+        }
+    ]
+}
