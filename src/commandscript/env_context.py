@@ -30,7 +30,7 @@ class EnvVariable:
             env_var_hold_value = env_var_hold_value.replace(substitution_pattern[0], f"{open_symbol}{substitution_pattern[1]}{close_symbol}")
             env_var_expanded_value = env_var_expanded_value.replace(substitution_pattern[0], substitution_value.exp)
 
-        self.__name = env_var_name
+        self.__name = f'{open_symbol}{env_var_name}{close_symbol}'
         self.__hold_value = env_var_hold_value
         self.__expanded_value = env_var_expanded_value
 
