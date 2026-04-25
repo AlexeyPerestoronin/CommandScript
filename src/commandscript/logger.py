@@ -1,6 +1,15 @@
 import enum
 import colorama
 
+__all__ = [
+    "success",
+    "status",
+    "info",
+    "warning",
+    "error",
+    "fail",
+]
+
 
 class Color(enum.Enum):
     RED = colorama.Fore.RED
@@ -25,7 +34,7 @@ class Logger:
     def __del__(self):
         print(colorama.Style.RESET_ALL)
 
-    def log_line(self, message: str):
+    def log_line(self, message: str) -> 'Logger':
         print(self.__color.value, end='')
         if message[-1] == '\n':
             print(message, end='')
@@ -34,9 +43,14 @@ class Logger:
         print(colorama.Style.RESET_ALL, end='')
         return self
 
+    def log_fail(self, message: str) -> Exception:
+        self.log_line(message)
+        return Exception(message)
 
-SUCCESS = Logger(Color.GREEN)
-STATUS = Logger(Color.BLUE)
-INFO = Logger(Color.WHITE)
-WARNING = Logger(Color.YELLOW)
-ERROR = Logger(Color.RED)
+
+success = Logger(Color.GREEN)
+status = Logger(Color.BLUE)
+info = Logger(Color.BLACK)
+warning = Logger(Color.YELLOW)
+error = Logger(Color.RED)
+fail = Logger(Color.RED)

@@ -32,20 +32,21 @@ See Also:
     - APTTasks/commandscipt/logger.py: Logger implementation
 """
 
+import invoke
 import inspect
 import functools
 
 from .env_context import ENV_CONTEXT
-from .script_executor import ScriptExecutor
-from .logger import SUCCESS, STATUS, INFO, WARNING, ERROR
+
+from . import script_executor
+from .script_executor import *
+
+from . import logger
+from .logger import *
 
 __all__ = [
-    # logging
-    "SUCCESS",
-    "STATUS",
-    "INFO",
-    "WARNING",
-    "ERROR",
+    *logger.__all__,
+    *script_executor.__all__,
     # scrip creation
     "ENV_CONTEXT",
     "ScriptExecutor",
@@ -90,20 +91,17 @@ def print_task_documentation(func):
     def decorator(*args, **kwargs):
         doc = func.__doc__
         if doc:
-            STATUS.log_line(doc.strip())
+            status.log_line(doc.strip())
             sig = inspect.signature(func)
             bound_args = sig.bind(*args, **kwargs)
             bound_args.apply_defaults()
             if bound_args.arguments:
-                STATUS.log_line("Parameters:")
+                status.log_line("Parameters:")
                 for name, value in [item for item in bound_args.arguments.items()][1:]:
-                    STATUS.log_line(f" * {name}: {value}")
+                    status.log_line(f" * {name}: {value}")
         return func(*args, **kwargs)
 
     return decorator
-
-
-import invoke
 
 
 def script_task(**task_kwargs):
@@ -152,6 +150,8 @@ def script_task(**task_kwargs):
 
     def decorator(func):
         sig = inspect.signature(func)
+        file_path = inspect.getsourcefile(func)
+        line_number = inspect.getsourcelines(func)[1]
 
         # check if 'script_dir' is already defined in the signature
         if 'script_dir' in sig.parameters:
@@ -168,6 +168,7 @@ def script_task(**task_kwargs):
                 raise ValueError(f"parameter `script-dir` isn't defined (define it via ENV_CONTEXT['COMMANDSCRIPT_SCRIPT_DIR'] or env-COMMANDSCRIPT_SCRIPT_DIR))")
             setattr(ctx, 'script_dir', script_dir)
             setattr(ctx, 'launch', launch)
+            setattr(ctx, 'task_path', f"{file_path}#{line_number}")
             # call original function
             return func(ctx, *args, **kwargs)
 

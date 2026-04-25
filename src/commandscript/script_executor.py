@@ -4,10 +4,14 @@ import threading
 import time
 import copy
 
-from typing import List
+from typing import List, Optional
 
-from .logger import SUCCESS, STATUS, ERROR, INFO
+from .logger import success, status, fail, info
 from .env_context import ENV_CONTEXT, EnvVariable
+
+__all__ = [
+    'ScriptExecutor',
+]
 
 
 class ScriptExecutor:
@@ -21,9 +25,21 @@ class ScriptExecutor:
     Additionally, this class checks the return code of executed operation and measures the time duration of its execution.
     """
 
-    def __init__(self, log_dir: EnvVariable, execute_created_script: bool):
+    @classmethod
+    def from_ctx(cls, ctx) -> 'ScriptExecutor':
+        script_dir = getattr(ctx, 'script_dir')
+        if script_dir is None:
+            raise fail.log_fail("ctx-context hasn't 'script_dir'-attribute")
+        launch = getattr(ctx, 'launch')
+        if launch is None:
+            raise fail.log_fail("ctx-context hasn't 'launch'-attribute")
+        task_path = getattr(ctx, 'task_path')
+        return ScriptExecutor(log_dir=script_dir, execute_created_script=launch, task_path=task_path)
+
+    def __init__(self, log_dir: EnvVariable, execute_created_script: bool, task_path: Optional[str]):
         self.__log_dir = log_dir.exp
         self.__execute_created_script = execute_created_script
+        self.__task_path = task_path
         if os.name == "nt":
             from . import windows
             self.__executor = windows.BatchExecutor()
@@ -68,12 +84,12 @@ class ScriptExecutor:
             self.add_command(command, enter=enter, offset=offset)
         return self
 
-    def execute(self, log: str = None):
+    def execute(self, log: str = None) -> Optional[Exception]:
         log_path = pathlib.Path(f"{self.__log_dir}/{log}")
         [process_handler, script_path] = self.__executor.get_execute_process_handler(self.__commands, cwd=self.__cwd, env=self.__env, log_path=log_path)
 
         if self.__execute_created_script == False:
-            STATUS \
+            status \
                 .log_line("\nWithout execution:") \
                 .log_line(f"Command script file: {script_path}")
             return
@@ -85,7 +101,7 @@ class ScriptExecutor:
 
         def write_log_line(line):
             # write in console
-            INFO.log_line(f"{line.rstrip()}")
+            info.log_line(f"{line.rstrip()}")
             # write in log-file
             log_file.write(f"{line}")
             log_file.flush()
@@ -113,11 +129,13 @@ class ScriptExecutor:
 
         log_file.close()
 
-        STATUS \
+        status \
             .log_line(f"\nCommand script file: {script_path}") \
             .log_line(f"Command log file: {log_path}") \
 
-        if return_code == 0:
-            SUCCESS.log_line("Command completed successfully.")
-        else:
-            ERROR.log_line(f"Command failed: return code {return_code}.")
+        if self.__task_path:
+            status.log_line(f"Script task path: {self.__task_path}")
+
+        if return_code != 0:
+            return fail.log_fail(f"Command failed: return code {return_code}.")
+        success.log_line("Command completed successfully.")

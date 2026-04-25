@@ -89,8 +89,8 @@ commandcript.ENV_CONTEXT.add_env_var('COMMANDSCRIPT_SCRIPT_DIR', '/path/to/folde
 @commandcript.script_task()
 def build(ctx):
     """Build the project"""
-    commandcript.ScriptExecutor(ctx.script_dir, ctx.launch) \
-        .add_cwd(commandcript.ENV_CONTEXT.PROJECT_GIT_DIR.hld) \
+    commandscript.ScriptExecutor.from_ctx(ctx) \
+        .add_cwd(commandscript.ENV_CONTEXT.PROJECT_GIT_DIR.hld) \
         .add_command(['python', 'setup.py', 'build']) \
         .execute(log='build')
 
@@ -111,7 +111,7 @@ The `EnvContext` class provides additional functionality for managing environmen
 Before using CommandScript, set up the environment context:
 
 ```python
-from src.commandcript import ENV_CONTEXT
+from src.commandscript import ENV_CONTEXT
 
 ENV_CONTEXT\
     .add_env_var('PROJECT_GIT_DIR', f'{__file__}/../')\
@@ -150,7 +150,7 @@ executor.add_cwd('/tmp') \
     }
 )
 def build(ctx, target='all', clean=False):
-    executor = commandcript.ScriptExecutor(ctx.script_dir, ctx.launch)
+    executor = commandscript.ScriptExecutor.from_ctx(ctx)
 
     if clean:
         executor.add_command(['make', 'clean'])
@@ -167,16 +167,19 @@ The main class for executing commands via OS-specific scripts.
 
 - **Constructor**:
     ```python
-    ScriptExecutor(log_dir: EnvVariable, execute_created_script: bool)
+    ScriptExecutor(log_dir: EnvVariable, execute_created_script: bool, task_path: Optional[str] = None)
     ```
     - `log_dir`: `EnvVariable` object pointing to the directory where log files and scripts will be stored (uses `.exp` internally)
     - `execute_created_script`: If True, executes the generated script; if False, only generates it
+    - `task_path`: Optional path to the task source file (auto-set when using `@script_task()`)
+- **Class Methods**
+    - `from_ctx(ctx) -> ScriptExecutor`: Create a `ScriptExecutor` from an invoke context. Automatically extracts `script_dir`, `launch`, and `task_path` from the context.
 - **Methods**
     - `add_cwd(cwd: str)`: Set working directory for script execution
     - `add_env(env: dict)`: Add environment variables
     - `add_command(command: list, enter=True, offset=True)`: Add a single command
     - `add_commands(commands: List[list], enter=True, offset=True)`: Add multiple commands
-    - `execute(log: str = None)`: Execute the script and log output. On failure, logs the error without raising an exception.
+    - `execute(log: str = None) -> Optional[Exception]`: Execute the script and log output. Returns `Exception` on failure, `None` on success.
 
 ### EnvVariable
 
@@ -213,15 +216,19 @@ def my_task(ctx, param=None):
 
 CommandScript provides colored logging utilities:
 
-- `INFO`: General information (blue)
-- `SUCCESS`: Success messages (green)
-- `STATUS`: Status updates (cyan)
-- `ERROR`: Error messages (red)
+- `info`: General information (black)
+- `success`: Success messages (green)
+- `status`: Status updates (blue)
+- `warning`: Warning messages (yellow)
+- `error`: Error messages (red)
+- `fail`: Failure messages (red) — provides `log_fail(message)` which returns an `Exception`
+
+All loggers' `log_line()` method returns the logger instance for method chaining.
 
 ```python
-import commandcript
+import commandscript
 
-commandcript.INFO.log_line("This is an info message")
-commandcript.SUCCESS.log_line("Operation completed successfully")
-commandcript.ERROR.log_line("An error occurred")
+commandscript.info.log_line("This is an info message")
+commandscript.success.log_line("Operation completed successfully")
+commandscript.error.log_line("An error occurred")
 ```
